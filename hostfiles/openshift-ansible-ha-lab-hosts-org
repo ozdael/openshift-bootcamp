@@ -1,33 +1,25 @@
-[lb]
-loadbalancer1.8a76.internal host_zone=us-east-1c
+# This is an example of an OpenShift-Ansible host inventory that provides the
+# minimum recommended configuration for production use. This includes 3 masters,
+# two infra nodes, two compute nodes, and an haproxy load balancer to load
+# balance traffic to the API servers. For a truly production environment you
+# should use an external load balancing solution that itself is highly available.
 
 [masters]
-master3.8a76.internal host_zone=us-east-1c
-master2.8a76.internal host_zone=us-east-1c
-master1.8a76.internal host_zone=us-east-1c
+ose3-master[1:3].test.example.com
 
 [etcd]
-master3.8a76.internal host_zone=us-east-1c
-master2.8a76.internal host_zone=us-east-1c
-master1.8a76.internal host_zone=us-east-1c
+ose3-master[1:3].test.example.com
 
 [nodes]
-## These are the masters
-master3.8a76.internal openshift_hostname=master3.8a76.internal  openshift_node_labels="{'logging':'true','openshift_schedulable':'False','cluster': '8a76', 'zone': 'us-east-1c'}"
-master2.8a76.internal openshift_hostname=master2.8a76.internal  openshift_node_labels="{'logging':'true','openshift_schedulable':'False','cluster': '8a76', 'zone': 'us-east-1c'}"
-master1.8a76.internal openshift_hostname=master1.8a76.internal  openshift_node_labels="{'logging':'true','openshift_schedulable':'False','cluster': '8a76', 'zone': 'us-east-1c'}"
-
-## These are infranodes
-infranode1.8a76.internal openshift_hostname=infranode1.8a76.internal  openshift_node_labels="{'logging':'true','cluster': '8a76', 'env':'infra', 'zone': 'us-east-1c'}"
-infranode2.8a76.internal openshift_hostname=infranode2.8a76.internal  openshift_node_labels="{'logging':'true','cluster': '8a76', 'env':'infra', 'zone': 'us-east-1c'}"
-
-## These are regular nodes
-node2.8a76.internal openshift_hostname=node2.8a76.internal  openshift_node_labels="{'logging':'true','cluster': '8a76', 'env':'app', 'zone': 'us-east-1c'}"
-node3.8a76.internal openshift_hostname=node3.8a76.internal  openshift_node_labels="{'logging':'true','cluster': '8a76', 'env':'app', 'zone': 'us-east-1c'}"
-node1.8a76.internal openshift_hostname=node1.8a76.internal  openshift_node_labels="{'logging':'true','cluster': '8a76', 'env':'app', 'zone': 'us-east-1c'}"
+ose3-master[1:3].test.example.com
+ose3-infra[1:2].test.example.com openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+ose3-node[1:2].test.example.com openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 
 [nfs]
-support1.8a76.internal openshift_hostname=support1.8a76.internal
+ose3-master1.test.example.com
+
+[lb]
+ose3-lb.test.example.com
 
 # Create an OSEv3 group that contains the masters and nodes groups
 [OSEv3:children]
@@ -38,22 +30,6 @@ lb
 nfs
 
 [OSEv3:vars]
-###########################################################################
-### Ansible Vars
-###########################################################################
-timeout=60
-ansible_ssh_user=ec2-user
-
-# disable memory check, as we are not a production environment
-openshift_disable_check="memory_availability"
-
-# Install containerized hosts
-containerized=false
-
-# Default node selector for infra components (ONLY router/registry/template service broker/ansible service broker)
-# Other components need specific node selectors: logging,metrics,prometheus
-openshift_hosted_infra_selector=='env=infra'
-
 ###############################################################################
 # Common/ Required configuration variables follow                             #
 ###############################################################################
@@ -64,11 +40,11 @@ ansible_user=root
 
 # If ansible_user is not root, ansible_become must be set to true and the
 # user must be configured for passwordless sudo
-ansible_become=yes
+#ansible_become=yes
 
 # Specify the deployment type. Valid values are origin and openshift-enterprise.
-#openshift_deployment_type=origin
-openshift_deployment_type=openshift-enterprise
+openshift_deployment_type=origin
+#openshift_deployment_type=openshift-enterprise
 
 # Specify the generic release of OpenShift to install. This is used mainly just during installation, after which we
 # rely on the version running on the first master. Works best for containerized installs where we can usually
@@ -80,12 +56,11 @@ openshift_release=v3.9
 # default subdomain to use for exposed routes, you should have wildcard dns
 # for *.apps.test.example.com that points at your infra nodes which will run
 # your router
-#openshift_master_default_subdomain=apps.test.example.com
-openshift_master_default_subdomain=*.apps.${GUID}.example.opentlc.com
+openshift_master_default_subdomain=apps.test.example.com
 
 #Set cluster_hostname to point at your load balancer
-#openshift_master_cluster_hostname=ose3-lb.test.example.com
-openshift_master_cluster_hostname=loadbalancer.$GUID.example.opentlc.com
+openshift_master_cluster_hostname=ose3-lb.test.example.com
+
 
 
 ###############################################################################
@@ -128,18 +103,6 @@ debug_level=2
 # See: https://docs.openshift.org/latest/install_config/web_console_customization.html#changing-the-logout-url
 #openshift_master_logout_url=http://example.com
 
-# Configure extensionScripts in the master config for console customization
-# See: https://docs.openshift.org/latest/install_config/web_console_customization.html#loading-custom-scripts-and-stylesheets
-#openshift_master_extension_scripts=['/path/to/script1.js','/path/to/script2.js']
-
-# Configure extensionStylesheets in the master config for console customization
-# See: https://docs.openshift.org/latest/install_config/web_console_customization.html#loading-custom-scripts-and-stylesheets
-#openshift_master_extension_stylesheets=['/path/to/stylesheet1.css','/path/to/stylesheet2.css']
-
-# Configure extensions in the master config for console customization
-# See: https://docs.openshift.org/latest/install_config/web_console_customization.html#serving-static-files
-#openshift_master_extensions=[{'name': 'images', 'sourceDirectory': '/path/to/my_images'}]
-
 # Configure extensions in the master config for console customization
 # See: https://docs.openshift.org/latest/install_config/web_console_customization.html#serving-static-files
 #openshift_master_oauth_templates:
@@ -165,8 +128,6 @@ debug_level=2
 #openshift_docker_additional_registries=registry.example.com
 #openshift_docker_insecure_registries=registry.example.com
 #openshift_docker_blocked_registries=registry.hacker.com
-# Disable pushing to dockerhub
-#openshift_docker_disable_push_dockerhub=True
 # Use Docker inside a System Container. Note that this is a tech preview and should
 # not be used to upgrade!
 # The following options for docker are ignored:
@@ -395,8 +356,7 @@ debug_level=2
 
 # If an external load balancer is used public hostname should resolve to
 # external load balancer address
-#changed#openshift_master_cluster_public_hostname=
-openshift_master_cluster_public_hostname=loadbalancer.$GUID.example.opentlc.com
+#openshift_master_cluster_public_hostname=openshift-ansible.public.example.com
 
 # Configure controller arguments
 #osm_controller_args={'resource-quota-sync-period': ['10s']}
@@ -437,7 +397,7 @@ openshift_master_cluster_public_hostname=loadbalancer.$GUID.example.opentlc.com
 #
 # An OpenShift router will be created during install if there are
 # nodes present with labels matching the default router selector,
-# "region=infra". Set openshift_node_labels per node as needed in
+# "node-role.kubernetes.io/infra=true". Set openshift_node_labels per node as needed in
 # order to label nodes.
 #
 # Example:
@@ -446,8 +406,8 @@ openshift_master_cluster_public_hostname=loadbalancer.$GUID.example.opentlc.com
 #
 # Router selector (optional)
 # Router will only be created if nodes matching this label are present.
-# Default value: 'region=infra'
-openshift_hosted_router_selector='env=infra'
+# Default value: 'node-role.kubernetes.io/infra=true'
+#openshift_hosted_router_selector='node-role.kubernetes.io/infra=true'
 #
 # Router replicas (optional)
 # Unless specified, openshift-ansible will calculate the replica count
@@ -488,7 +448,7 @@ openshift_hosted_router_selector='env=infra'
 #
 # An OpenShift registry will be created during install if there are
 # nodes present with labels matching the default registry selector,
-# "region=infra". Set openshift_node_labels per node as needed in
+# "node-role.kubernetes.io/infra=true". Set openshift_node_labels per node as needed in
 # order to label nodes.
 #
 # Example:
@@ -497,8 +457,8 @@ openshift_hosted_router_selector='env=infra'
 #
 # Registry selector (optional)
 # Registry will only be created if nodes matching this label are present.
-# Default value: 'region=infra'
-openshift_hosted_registry_selector='env=infra'
+# Default value: 'node-role.kubernetes.io/infra=true'
+#openshift_hosted_registry_selector='node-role.kubernetes.io/infra=true'
 #
 # Registry replicas (optional)
 # Unless specified, openshift-ansible will calculate the replica count
@@ -510,7 +470,9 @@ openshift_hosted_registry_selector='env=infra'
 #
 # Manage the OpenShift Registry (optional)
 #openshift_hosted_manage_registry=true
-
+# Manage the OpenShift Registry Console (optional)
+#openshift_hosted_manage_registry_console=true
+#
 # Registry Storage Options
 #
 # NFS Host Group
@@ -599,7 +561,7 @@ openshift_hosted_registry_selector='env=infra'
 # See: https://docs.openshift.com/enterprise/latest/install_config/cluster_metrics.html
 #
 # By default metrics are not automatically deployed, set this to enable them
-openshift_metrics_install_metrics=true
+#openshift_metrics_install_metrics=true
 #
 # Storage Options
 # If openshift_metrics_storage_kind is unset then metrics will be stored
@@ -628,13 +590,13 @@ openshift_metrics_install_metrics=true
 # options would be "nfs.example.com:/exports/metrics".  "exports" is
 # is the name of the export served by the nfs server.  "metrics" is
 # the name of a directory inside of "/exports".
-openshift_metrics_storage_kind=nfs
-openshift_metrics_storage_access_modes=['ReadWriteOnce']
-openshift_metrics_storage_host=support1.$GUID.internal
-openshift_metrics_storage_nfs_directory=/srv/nfs
-openshift_metrics_storage_volume_name=metrics
-openshift_metrics_storage_volume_size=10Gi
-openshift_metrics_storage_labels={'storage': 'metrics'}
+#openshift_metrics_storage_kind=nfs
+#openshift_metrics_storage_access_modes=['ReadWriteOnce']
+#openshift_metrics_storage_host=nfs.example.com
+#openshift_metrics_storage_nfs_directory=/exports
+#openshift_metrics_storage_volume_name=metrics
+#openshift_metrics_storage_volume_size=10Gi
+#openshift_metrics_storage_labels={'storage': 'metrics'}
 #
 # Option C - Dynamic -- If openshift supports dynamic volume provisioning for
 # your cloud platform use this.
@@ -663,7 +625,7 @@ openshift_metrics_storage_labels={'storage': 'metrics'}
 # Logging deployment
 #
 # Currently logging deployment is disabled by default, enable it by setting this
-openshift_logging_install_logging=true
+#openshift_logging_install_logging=true
 #
 # Logging storage config
 # Option A - NFS Host Group
@@ -686,13 +648,13 @@ openshift_logging_install_logging=true
 # options would be "nfs.example.com:/exports/logging".  "exports" is
 # is the name of the export served by the nfs server.  "logging" is
 # the name of a directory inside of "/exports".
-openshift_logging_storage_kind=nfs
-openshift_logging_storage_access_modes=['ReadWriteOnce']
-openshift_logging_storage_host=support1.$GUID.internal
-openshift_logging_storage_nfs_directory=/srv/nfs
-openshift_logging_storage_volume_name=logging
-openshift_logging_storage_volume_size=10Gi
-openshift_logging_storage_labels={'storage': 'logging'}
+#openshift_logging_storage_kind=nfs
+#openshift_logging_storage_access_modes=['ReadWriteOnce']
+#openshift_logging_storage_host=nfs.example.com
+#openshift_logging_storage_nfs_directory=/exports
+#openshift_logging_storage_volume_name=logging
+#openshift_logging_storage_volume_size=10Gi
+#openshift_logging_storage_labels={'storage': 'logging'}
 #
 # Option C - Dynamic -- If openshift supports dynamic volume provisioning for
 # your cloud platform use this.
@@ -720,8 +682,7 @@ openshift_logging_storage_labels={'storage': 'logging'}
 # Prometheus deployment
 #
 # Currently prometheus deployment is disabled by default, enable it by setting this
-openshift_hosted_prometheus_deploy=true
-
+#openshift_hosted_prometheus_deploy=true
 #
 # Prometheus storage config
 # Option A - NFS Host Group
@@ -762,31 +723,31 @@ openshift_hosted_prometheus_deploy=true
 # NFS volume must already exist with path "nfs_directory/_volume_name" on
 # the storage_host. For example, the remote volume path using these
 # options would be "nfs.example.com:/exports/prometheus"
-openshift_prometheus_storage_kind=nfs
-openshift_prometheus_storage_access_modes=['ReadWriteOnce']
-openshift_prometheus_storage_host=support1.$GUID.internal
-openshift_prometheus_storage_nfs_directory=/srv/nfs
-openshift_prometheus_storage_volume_name=prometheus
-openshift_prometheus_storage_volume_size=10Gi
-openshift_prometheus_storage_labels={'storage': 'prometheus'}
-openshift_prometheus_storage_type='pvc'
-openshift_prometheus_storage_class=glusterfs-storage
+#openshift_prometheus_storage_kind=nfs
+#openshift_prometheus_storage_access_modes=['ReadWriteOnce']
+#openshift_prometheus_storage_host=nfs.example.com
+#openshift_prometheus_storage_nfs_directory=/exports
+#openshift_prometheus_storage_volume_name=prometheus
+#openshift_prometheus_storage_volume_size=10Gi
+#openshift_prometheus_storage_labels={'storage': 'prometheus'}
+#openshift_prometheus_storage_type='pvc'
+#openshift_prometheus_storage_class=glusterfs-storage
 # For prometheus-alertmanager
-openshift_prometheus_alertmanager_storage_kind=nfs
-openshift_prometheus_alertmanager_storage_access_modes=['ReadWriteOnce']
-openshift_prometheus_alertmanager_storage_host=support1.$GUID.internal
-openshift_prometheus_alertmanager_storage_nfs_directory=/srv/nfs
-openshift_prometheus_alertmanager_storage_volume_name=prometheus-alertmanager
-openshift_prometheus_alertmanager_storage_volume_size=10Gi
-openshift_prometheus_alertmanager_storage_labels={'storage': 'prometheus-alertmanager'}
-openshift_prometheus_alertmanager_storage_type='pvc'
-openshift_prometheus_alertmanager_storage_class=glusterfs-storage
+#openshift_prometheus_alertmanager_storage_kind=nfs
+#openshift_prometheus_alertmanager_storage_access_modes=['ReadWriteOnce']
+#openshift_prometheus_alertmanager_storage_host=nfs.example.com
+#openshift_prometheus_alertmanager_storage_nfs_directory=/exports
+#openshift_prometheus_alertmanager_storage_volume_name=prometheus-alertmanager
+#openshift_prometheus_alertmanager_storage_volume_size=10Gi
+#openshift_prometheus_alertmanager_storage_labels={'storage': 'prometheus-alertmanager'}
+#openshift_prometheus_alertmanager_storage_type='pvc'
+#openshift_prometheus_alertmanager_storage_class=glusterfs-storage
 # For prometheus-alertbuffer
-openshift_prometheus_alertbuffer_storage_kind=nfs
-openshift_prometheus_alertbuffer_storage_access_modes=['ReadWriteOnce']
-openshift_prometheus_alertbuffer_storage_host=support1.$GUID.internal
-openshift_prometheus_alertbuffer_storage_nfs_directory=/srv/nfs
-openshift_prometheus_alertbuffer_storage_volume_name=prometheus-alertbuffer
+#openshift_prometheus_alertbuffer_storage_kind=nfs
+#openshift_prometheus_alertbuffer_storage_access_modes=['ReadWriteOnce']
+#openshift_prometheus_alertbuffer_storage_host=nfs.example.com
+#openshift_prometheus_alertbuffer_storage_nfs_directory=/exports
+#openshift_prometheus_alertbuffer_storage_volume_name=prometheus-alertbuffer
 #openshift_prometheus_alertbuffer_storage_volume_size=10Gi
 #openshift_prometheus_alertbuffer_storage_labels={'storage': 'prometheus-alertbuffer'}
 #openshift_prometheus_alertbuffer_storage_type='pvc'
@@ -1019,7 +980,7 @@ openshift_prometheus_alertbuffer_storage_volume_name=prometheus-alertbuffer
 #openshift_template_service_broker_namespaces=['openshift']
 
 # masterConfig.volumeConfig.dynamicProvisioningEnabled, configurable as of 1.2/3.2, enabled by default
-#openshift_master_dynamic_provisioning_enabled=False
+#openshift_master_dynamic_provisioning_enabled=True
 
 # Admission plugin config
 #openshift_master_admission_plugin_config={"ProjectRequestLimit":{"configuration":{"apiVersion":"v1","kind":"ProjectRequestLimitConfig","limits":[{"selector":{"admin":"true"}},{"maxProjects":"1"}]}},"PodNodeConstraints":{"configuration":{"apiVersion":"v1","kind":"PodNodeConstraintsConfig"}}}
@@ -1029,11 +990,9 @@ openshift_prometheus_alertbuffer_storage_volume_name=prometheus-alertbuffer
 
 # OpenShift Per-Service Environment Variables
 # Environment variables are added to /etc/sysconfig files for
-# each OpenShift service: node, master (api and controllers).
+# each OpenShift node.
 # API and controllers environment variables are merged in single
 # master environments.
-#openshift_master_api_env_vars={"ENABLE_HTTP2": "true"}
-#openshift_master_controllers_env_vars={"ENABLE_HTTP2": "true"}
 #openshift_node_env_vars={"ENABLE_HTTP2": "true"}
 
 # Enable API service auditing
