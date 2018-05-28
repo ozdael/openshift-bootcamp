@@ -1,0 +1,22 @@
+kind: "Template"
+apiVersion: "v1"
+parameters:
+- name: client
+  required: true
+objects:
+- kind: "User"
+  apiVersion: "v1"
+  metadata:
+    name: "${client}"
+- kind: "Identity"
+  apiVersion: "v1"
+  metadata:
+    name: "htpasswd_auth:${client}"
+  providerName: "htpasswd_auth"
+  providerUserName: "${client}"
+- kind: "UserIdentityMapping"
+  apiVersion: "v1"
+  identity:
+    name: "htpasswd_auth:${client}"
+  user:
+    name: "${client}"
