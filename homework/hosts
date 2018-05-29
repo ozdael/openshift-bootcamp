@@ -11,7 +11,6 @@ ansible_ssh_user=ec2-user
 ### OpenShift Basic Vars
 ###########################################################################
 deployment_type=openshift-enterprise
-#openshift_deployment_type=openshift-enterprise
 containerized=false
 openshift_disable_check="memory_availability"
 
@@ -212,15 +211,5 @@ node1.c2f2.internal openshift_hostname=node1.c2f2.internal  openshift_node_label
 node2.c2f2.internal openshift_hostname=node2.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
 node3.c2f2.internal openshift_hostname=node3.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
 
-## These are CNS nodes
-# support1.c2f2.internal openshift_hostname=support1.c2f2.internal  openshift_node_labels="{'env':'glusterfs', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
-# support2.c2f2.internal openshift_hostname=support2.c2f2.internal  openshift_node_labels="{'env':'glusterfs', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
-# support3.c2f2.internal openshift_hostname=support3.c2f2.internal  openshift_node_labels="{'env':'glusterfs', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
-
 [nfs]
 support1.c2f2.internal openshift_hostname=support1.c2f2.internal
-
-#[glusterfs]
-# support1.c2f2.internal glusterfs_devices='[ "/dev/xvdd" ]'
-# support2.c2f2.internal glusterfs_devices='[ "/dev/xvdd" ]'
-# support3.c2f2.internal glusterfs_devices='[ "/dev/xvdd" ]'
