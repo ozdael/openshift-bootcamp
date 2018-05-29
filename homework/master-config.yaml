@@ -37,15 +37,15 @@ admissionConfig:
         kind: ProjectRequestLimitConfig
         limits:
         - selector:
-            node: node4
-          maxProjects: 3 
+            node: node1
+          maxProjects: 10
         - selector:
-             node: node5
-          maxProjects: 5
+             node: node2
+          maxProjects: 15
         - selector:
-            node: node6
-          maxProjects: 3 
-        - maxProjects: 10
+            node: node3
+          maxProjects: 20
+        - maxProjects: 30
 aggregatorConfig:
   proxyClientInfo:
     certFile: aggregator-front-proxy.crt

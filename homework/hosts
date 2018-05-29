@@ -182,7 +182,6 @@ lb
 masters
 etcd
 nodes
-new_nodes
 nfs
 
 [lb]
@@ -212,9 +211,6 @@ infranode2.c2f2.internal openshift_hostname=infranode2.c2f2.internal  openshift_
 node1.c2f2.internal openshift_hostname=node1.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
 node2.c2f2.internal openshift_hostname=node2.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
 node3.c2f2.internal openshift_hostname=node3.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"
-node4.c2f2.internal openshift_hostname=node4.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c', 'node': 'node4'}"
-node5.c2f2.internal openshift_hostname=node5.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c', 'node': 'node5'}"
-node6.c2f2.internal openshift_hostname=node6.c2f2.internal  openshift_node_labels="{'env':'app', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c', 'node': 'node6'}"
 
 ## These are CNS nodes
 # support1.c2f2.internal openshift_hostname=support1.c2f2.internal  openshift_node_labels="{'env':'glusterfs', 'cluster': 'c2f2', 'zone': 'ap-southeast-1c'}"

@@ -11,7 +11,7 @@
                 "type": "Pod",
                 "max": {
                     "cpu": "500m",
-                    "memory": "750Mi"
+                    "memory": "500Mi"
                 },
                 "min": {
                     "cpu": "10m",
@@ -22,7 +22,7 @@
                 "type": "Container",
                 "max": {
                     "cpu": "500m",
-                    "memory": "750Mi"
+                    "memory": "500Mi"
                 },
                 "min": {
                     "cpu": "10m",

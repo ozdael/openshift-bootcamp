@@ -1,29 +1,25 @@
-#openshift_master_cluster_public_hostname This is an example of an OpenShift-Ansible host inventory that provides the
+# This is an example of an OpenShift-Ansible host inventory that provides the
 # minimum recommended configuration for production use. This includes 3 masters,
 # two infra nodes, two compute nodes, and an haproxy load balancer to load
 # balance traffic to the API servers. For a truly production environment you
 # should use an external load balancing solution that itself is highly available.
 
 [masters]
-#ose3-master[1:3].test.example.com
-master{1,2,3}.$GUID.example.opentlc.com
+ose3-master[1:3].test.example.com
 
 [etcd]
-#ose3-master[1:3].test.example.com
-master{1,2,3}.$GUID.example.opentlc.com
+ose3-master[1:3].test.example.com
 
 [nodes]
-master{1,2,3}.$GUID.example.opentlc.com
-infranode{1,2}.$GUID.example.opentlc.com
-node{1-2}.$GUID.example.opentlc.com
+ose3-master[1:3].test.example.com
+ose3-infra[1:2].test.example.com openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+ose3-node[1:2].test.example.com openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 
 [nfs]
-#ose3-master1.test.example.com
-support1.$GUID.example.opentlc.com
+ose3-master1.test.example.com
 
 [lb]
-#ose3-lb.test.example.com
-loadbalancer.$GUID.example.opentlc.com
+ose3-lb.test.example.com
 
 # Create an OSEv3 group that contains the masters and nodes groups
 [OSEv3:children]
@@ -60,12 +56,11 @@ openshift_release=v3.9
 # default subdomain to use for exposed routes, you should have wildcard dns
 # for *.apps.test.example.com that points at your infra nodes which will run
 # your router
-#openshift_master_default_subdomain=apps.test.example.com
-openshift_master_default_subdomain=*.apps.${GUID}.example.opentlc.com
+openshift_master_default_subdomain=apps.test.example.com
 
 #Set cluster_hostname to point at your load balancer
-#openshift_master_cluster_hostname=ose3-lb.test.example.com
-openshift_master_cluster_hostname=loadbalancer.$GUID.example.opentlc.com
+openshift_master_cluster_hostname=ose3-lb.test.example.com
+
 
 
 ###############################################################################
@@ -87,8 +82,7 @@ debug_level=2
 
 # This enables all the system containers except for docker:
 #openshift_use_system_containers=False
-#:q!
-
+#
 # But you can choose separately each component that must be a
 # system container:
 #
