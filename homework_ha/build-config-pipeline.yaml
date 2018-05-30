@@ -1,0 +1,68 @@
+apiVersion: v1
+items:
+- kind: "BuildConfig"
+  apiVersion: "v1"
+  metadata:
+    name: "pipeline-demo"
+  spec:
+    triggers:
+    - github:
+        secret: 5Mlic4Le
+        type: GitHub
+    - generic:
+        secret: FiArdDBH
+        type: Generic
+    strategy:
+      type: "JenkinsPipeline"
+      jenkinsPipelineStrategy:
+        jenkinsfile: |
+          node {
+              stage ("Build") {
+                echo '*** Build Starting ***'
+                openshiftBuild bldCfg: 'openshift-tasks', buildName: '', checkForTriggeredDeployments: 'false', commitID: '', namespace: '', showBuildLogs: 'false', verbose: 'false', waitTime: ''
+                openshiftVerifyBuild bldCfg: 'openshift-tasks', checkForTriggeredDeployments: 'false', namespace: '', verbose: 'false'
+                echo '*** Build Completed ***'
+              }
+
+              stage ("Deploy in DEV ") {
+                echo '*** Deploy in DEV Starting ***'
+                openshiftDeploy depCfg: 'openshift-tasks', namespace: '', verbose: 'false', waitTime: ''
+                openshiftVerifyDeployment authToken: '', depCfg: 'openshift-tasks', namespace: '', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false', waitTime: ''
+                echo '*** Deploy in DEV Completed ***'
+
+                echo '*** Service Verification Started ***'
+                openshiftVerifyService authToken: '', namespace: 'pipeline-dev', svcName: 'openshift-tasks', verbose: 'false'
+                echo '*** Service Verification Completed ***'
+                openshiftTag(srcStream: 'openshift-tasks', srcTag: 'latest', destStream: 'openshift-tasks', destTag: 'testready')
+                echo '*** Image stream tagged as testready ***'
+              }
+
+              stage ('Deploy in TEST') {
+                echo "*** Deploy in TEST started ***"
+                openshiftDeploy depCfg: 'openshift-tasks', namespace: 'pipeline-test', verbose: 'false', waitTime: ''
+                echo "*** Deploy in TEST completed ***"
+
+                echo '*** Service Verification Started ***'
+                openshiftVerifyDeployment authToken: '', depCfg: 'openshift-tasks', namespace: 'pipeline-test', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false'
+                echo '*** Service Verification Completed ***'
+              }
+
+              stage ('Deploy in PROD') {
+                echo '*** Waiting for Input ***'
+                input 'Should we deploy to Production?'
+
+                openshiftTag(srcStream: 'openshift-tasks', srcTag: 'testready', destStream: 'openshift-tasks', destTag: 'prodready')
+                echo '*** Image stream tagged as prodready ***'
+
+                echo '*** Deploy in PROD started ***'
+                openshiftDeploy depCfg: 'openshift-tasks', namespace: 'pipeline-prod', verbose: 'false', waitTime: ''
+                echo '*** Deploy in PROD completed ***'
+
+                echo '*** Service Verification Started ***'
+                openshiftVerifyDeployment authToken: '', depCfg: 'openshift-tasks', namespace: 'pipeline-prod', replicaCount: '1', verbose: 'false', verifyReplicaCount: 'false'
+                echo '*** Service Verification Completed ***'
+              }
+            }
+
+kind: List
+metadata: {}
